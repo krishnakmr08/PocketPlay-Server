@@ -82,4 +82,32 @@ export const signInWithGoogle = async (req, res) => {
   });
 };
 
+export const refreshToken = async (req, res) => {
+  const { refresh_token } = req.body;
 
+  if (!refresh_token) {
+    throw new BadRequestError("Refresh token is required");
+  }
+
+  try {
+    const payload = jwt.verify(refresh_token, process.env.REFRESH_TOKEN_SECRET);
+
+    const user = await User.findById(payload.userId);
+
+    if (!user) {
+      throw new UnauthenticatedError("Invalid refresh token");
+    }
+
+    const newAccessToken = user.createAccessToken();
+    const newRefreshToken = user.createRefreshToken();
+
+    return res.status(StatusCodes.OK).json({
+      access_token: newAccessToken,
+      refresh_token: newRefreshToken,
+    });
+  } catch (error) {
+    console.error("Error refreshing token:", error);
+
+    throw new UnauthenticatedError("Invalid refresh token");
+  }
+};
