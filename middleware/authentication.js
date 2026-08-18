@@ -1,3 +1,7 @@
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import { UnauthenticatedError, NotFoundError } from "../errors/index.js";
+
 const authMiddleWare = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -15,14 +19,14 @@ const authMiddleWare = async (req, res, next) => {
     throw new UnauthenticatedError("Authentication invalid");
   }
 
-  const user = await User.findById(payload.id);
+  const user = await User.findById(payload.userId);
 
   if (!user) {
     throw new NotFoundError("User not found");
   }
 
   req.user = {
-    id: payload.id,
+    id: payload.userId,
   };
 
   next();
